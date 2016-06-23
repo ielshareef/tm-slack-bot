@@ -12,6 +12,7 @@ var token = process.env.SLACK_API_TOKEN || '';
 var apikey = process.env.TICKETMASTER_API_KEY || '';
 var rtm = new RtmClient(token);
 var web = new WebClient(token);
+
 // Data object for the web.chat.postMessage call
 var msgdata = {
 	username: "apibot",

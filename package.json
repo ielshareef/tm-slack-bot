@@ -7,11 +7,11 @@
     "start": "node index.js"
   },
   "repository": {
-	  "type": "git",
-      "url": "https://github.com/ielshareef/tm-slack-bot.git"
+    "type": "git",
+    "url": "https://github.com/ielshareef/tm-slack-bot.git"
   },
   "bugs": {
-      "url": "https://github.com/ielshareef/tm-slack-bot/issues"
+    "url": "https://github.com/ielshareef/tm-slack-bot/issues"
   },
   "homepage": "https://github.com/ielshareef/tm-slack-bot",
   "author": "Ismail Elshareef",
