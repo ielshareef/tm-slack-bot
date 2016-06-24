@@ -76,7 +76,7 @@ function sendHelpMenu(message) {
 function sendEventCard(message, url, data) {
 	if (data.name) {
 		var attr, ven, seg, loc = "N/A";
-		if (data.classifications.length) {
+		if (data.classifications && data.classifications.length) {
 			seg = data.classifications[0].segment.name;
 		}
 		if (data._embedded && data._embedded.attractions && data._embedded.attractions.length) {
