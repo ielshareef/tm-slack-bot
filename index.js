@@ -10,8 +10,8 @@ var Client = require('node-rest-client').Client;
 var client = new Client();
 var token = process.env.SLACK_API_TOKEN || '';
 var apikey = process.env.TICKETMASTER_API_KEY || '';
-var rtm = new RtmClient(token);
-var web = new WebClient(token);
+var rtm = new RtmClient(token, {port: process.env.PORT || 8080});
+var web = new WebClient(token, {port: process.env.PORT || 8080});
 
 // Data object for the web.chat.postMessage call
 var msgdata = {
