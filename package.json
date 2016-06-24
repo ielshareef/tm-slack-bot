@@ -18,6 +18,7 @@
   "license": "MIT",
   "dependencies": {
     "@slack/client": "^3.5.0",
+    "dotenv": "^2.0.0",
     "node-rest-client": "^1.8.0"
   }
 }
