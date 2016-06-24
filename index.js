@@ -1,4 +1,4 @@
-require('dotenv').config();
+if (!process.env.SLACK_API_TOKEN) require('dotenv').config();
 console.log(process.env.SLACK_API_TOKEN);
 
 // Required modules
