@@ -164,7 +164,7 @@ function handleRtmMessage(message) { // listening in on the messages in the chan
 					switch(arr[2]) {
 					case 'event':
 						if (arr[3]) {
-							var url = "https://app.ticketmaster.com/discovery/v2/events.json?keyword=" + arr[3] + "&size=1&apikey="+ apikey;
+							var url = "https://app.ticketmaster.com/discovery/v2/events.json?keyword=" + arr[3] + "&view=internal&size=1&apikey="+ apikey;
 							client.get(url, function (data) {
 								sendEventCard(message, url, data._embedded.events[0]);
 							});
