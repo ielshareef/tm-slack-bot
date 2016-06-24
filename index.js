@@ -35,6 +35,11 @@ var msgdata = {
 
 function sendHelpMenu(message) {
 	msgdata.attachments = [{
+        "color": "#B7C9D3",
+        "title": "Get this help menu",
+		"text": "`\\` or `\\ help`",
+		"mrkdwn_in": ["text"]
+	}, {
         "color": "#768692",
         "title": "Count all events in the API",
 		"text": "`\\ count`",
