@@ -15,6 +15,7 @@ app.get('/', function(request, response) {
 console.log(process.env.SLACK_API_TOKEN);
 
 // Required modules
+require('newrelic');
 var RtmClient = require('@slack/client').RtmClient;
 var RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 var WebClient = require('@slack/client').WebClient;
@@ -243,6 +244,8 @@ function handleRtmMessage(message) { // listening in on the messages in the chan
 			case 'help':
 				sendHelpMenu(message);
 				break;
+			case 'list:sources':
+				web.chat.postMessage(message.channel, "Our marketplace sports content and data from *Ticketmaster*, *Universe*, *FrontGate*, and *TMR*. You can use the command `\\ count [source]` to get total events from that source.", msgdata);
 			}
 		} else {
 			sendHelpMenu(message);
