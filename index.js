@@ -1,19 +1,19 @@
+// Include monitoring and alerting. This is also used to keep the dyno from idling.
 require('newrelic');
-if (!process.env.SLACK_API_TOKEN) require('dotenv').config();
-var express = require('express');
-var app     = express();
 
-app.set('port', (process.env.PORT || 5000));
+// If environment variables aren't defined, load the .env file
+if (!process.env.SLACK_API_TOKEN) require('dotenv').config();
 
 //For avoidong Heroku $PORT error
+var express = require('express');
+var app     = express();
+app.set('port', (process.env.PORT || 5000));
 app.get('/', function(request, response) {
-    var result = 'App is running'
+    var result = 'App is running';
     response.send(result);
 }).listen(app.get('port'), function() {
     console.log('App is running, server is listening on port ', app.get('port'));
 });
-
-console.log(process.env.SLACK_API_TOKEN);
 
 // Required modules
 var RtmClient = require('@slack/client').RtmClient;
@@ -30,9 +30,12 @@ var web = new WebClient(token);
 
 // Data object for the web.chat.postMessage call
 var msgdata = {
-	username: "apibot",
-	icon_emoji: ":bee:"
+	username: (process.env.DEV) ? "apibot-dev" : "apibot",
+	icon_emoji: (process.env.DEV) ? ":bug:" : ":bee:"
 };
+
+// Display variables
+console.log("Slack Token: " + process.env.SLACK_API_TOKEN + " | Ticketmaster Key: " + process.env.TICKETMASTER_API_KEY + " | Port: " + process.env.PORT);
 
 function sendHelpMenu(message) {
 	msgdata.attachments = [{
@@ -129,17 +132,17 @@ function sendEventCard(message, url, data) {
 				"short": true
 			}]
     	}];
-		web.chat.postMessage(message.channel, "Here's the event I found: (<"+ url + "|api call>)", msgdata);
+		web.chat.postMessage(message.channel, "Here's the event I found: (<"+ url.replace(process.env.TICKETMASTER_API_KEY, "") + "|api call>)", msgdata);
 	} else {
-		web.chat.postMessage(message.channel, "Hmm, something went wrong. #BlameSylvain. Here's the API call I made: " + url, msgdata);
+		web.chat.postMessage(message.channel, "Hmm, something went wrong. #BlameSylvain. Here's the API call I made: " + url.replace(process.env.TICKETMASTER_API_KEY, ""), msgdata);
 	}
 }
 
 function handleRtmMessage(message) { // listening in on the messages in the channels that added me!
-	if (message.type == "message" && message.text && (message.text.substring(0, 1) == "\\" || message.text.substring(0, 13) == '<@U1K1RGWUQ>:')) { // Making sure they're asking me to do something!
+	if (message.type == "message" && message.text && message.text.substring(0, 1) == "\\") { // Making sure they're asking me to do something!
 		console.log('Message:', message);
 		msgdata.attachments = [];
-		rtm.sendMessage('...', message.channel);
+		// rtm.sendMessage('...', message.channel);
 		// Analyze the command
 		var arr = message.text.split(' ');
 		if (arr[1]) {
@@ -161,7 +164,7 @@ function handleRtmMessage(message) { // listening in on the messages in the chan
 						}
 						web.chat.postMessage(message.channel, msg, msgdata);
 					} else {
-						web.chat.postMessage(message.channel, "Hmm, something went wrong. #BlameSylvain. Here's the <" + url + "|API call> I made", msgdata);
+						web.chat.postMessage(message.channel, "Hmm, something went wrong. #BlameSylvain. Here's the <" + url.replace(process.env.TICKETMASTER_API_KEY, "") + "|API call> I made", msgdata);
 					}
 				});
 				break;
