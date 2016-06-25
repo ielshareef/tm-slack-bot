@@ -1,3 +1,4 @@
+require('newrelic');
 if (!process.env.SLACK_API_TOKEN) require('dotenv').config();
 var express = require('express');
 var app     = express();
@@ -15,7 +16,6 @@ app.get('/', function(request, response) {
 console.log(process.env.SLACK_API_TOKEN);
 
 // Required modules
-require('newrelic');
 var RtmClient = require('@slack/client').RtmClient;
 var RTM_EVENTS = require('@slack/client').RTM_EVENTS;
 var WebClient = require('@slack/client').WebClient;
