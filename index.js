@@ -248,7 +248,27 @@ function handleRtmMessage(message) { // listening in on the messages in the chan
 				sendHelpMenu(message);
 				break;
 			case 'list:sources':
-				web.chat.postMessage(message.channel, "Our marketplace sports content and data from *Ticketmaster*, *Universe*, *FrontGate*, and *TMR*. You can use the command `\\ count [source]` to get total events from that source.", msgdata);
+				msgdata.attachments = [{
+					"color": "#768692",
+					"fields": [{
+						"title": "Ticketmaster",
+						"value": "All Host markets",
+						"short": true
+					}, {
+						"title": "Universe",
+						"value": "All markets",
+						"short": true
+					}, {
+						"title": "Ticketmaster Resale (TMR)",
+						"value": "All markets",
+						"short": true
+					}, {
+						"title": "FrontGate",
+						"value": "All markets",
+						"short": true
+					}]
+		    	}];
+				web.chat.postMessage(message.channel, "", msgdata);
 			}
 		} else {
 			sendHelpMenu(message);

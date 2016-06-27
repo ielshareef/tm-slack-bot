@@ -1,7 +1,7 @@
 {
-  "name": "tm-slack-bot",
+  "name": "ticketmaster-slack-bot",
   "version": "1.0.0",
-  "description": "Slack SDK",
+  "description": "The Ticketmaster AP Slack bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
