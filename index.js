@@ -173,6 +173,9 @@ function handleRtmMessage(message) { // listening in on the messages in the chan
 				if (arr[3]) {
 					url += "&countryCode=" + arr[3];
 				}
+				if (arr[4]) {
+					url += "&classificationName=" + arr[4];
+				}
 				var source = arr[2] || 'The entire marketplace';
 				client.get(url, function (data) {
 					if (data.page) {
