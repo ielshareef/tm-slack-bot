@@ -1,10 +1,10 @@
-// Include monitoring and alerting. This is also used to keep the dyno from idling.
+// Include monitoring and alerting. This is also used to keep the Heroku dyno from idling.
 require('newrelic');
 
 // If environment variables aren't defined, load the .env file
 if (!process.env.SLACK_API_TOKEN) require('dotenv').config();
 
-//For avoidong Heroku $PORT error
+// For avoidong Heroku $PORT error, and for being reached by New Relic's monitor
 var express = require('express');
 var app     = express();
 app.set('port', (process.env.PORT || 5000));
@@ -61,15 +61,20 @@ function sendHelpMenu(message) {
 	}, {
         "color": "#B7C9D3",
         "title": "Search events by keyword",
-		"text": "`\\ search event Adele`",
+		"text": "`\\ search:events keyword=Adele`",
 		"mrkdwn_in": ["text"]
 	}, {
         "color": "#768692",
+        "title": "Search events by keyword and country",
+		"text": "`\\ search:events keyword=Amy Schumer:countryCode=US`",
+		"mrkdwn_in": ["text"]
+	}, {
+        "color": "#B7C9D3",
         "title": "Get event details by ID",
 		"text": "`\\ get event Z7r9jZ1AvOYAP`",
 		"mrkdwn_in": ["text"]
 	}, {
-        "color": "#B7C9D3",
+        "color": "#768692",
         "title": "Get event details by source ID",
 		"text": "`\\ get:source event 1500508BE50D4ED5`",
 		"mrkdwn_in": ["text"]
@@ -81,14 +86,27 @@ function sendEventCard(message, url, data) {
 	if (data.name) {
 		var attr, ven, seg, loc = "N/A";
 		if (data.classifications && data.classifications.length) {
-			seg = data.classifications[0].segment.name;
+			seg = data.classifications[0].segment.name || "N/A";
 		}
 		if (data._embedded && data._embedded.attractions && data._embedded.attractions.length) {
-			attr = "<" + data._embedded.attractions[0].url + "|" + data._embedded.attractions[0].name + ">";
+			attr = "<";
+			attr += data._embedded.attractions[0].url || "http://";
+			attr += "|";
+			attr += data._embedded.attractions[0].name || "N/A";
+			attr += ">";
 		}
 		if (data._embedded && data._embedded.venues && data._embedded.venues.length) {
-			ven = "<" + data._embedded.venues[0].url + "|" + data._embedded.venues[0].name + ">";
-			loc = data._embedded.venues[0].city.name + ", " + data._embedded.venues[0].state.stateCode + " " + data._embedded.venues[0].postalCode + "\n" + data._embedded.venues[0].country.name;
+			ven = "<";
+			ven += data._embedded.venues[0].url || "http://";
+			ven += "|";
+			ven += data._embedded.venues[0].name || "N/A";
+			ven += ">";
+			
+			loc = data._embedded.venues[0].city.name || "N/A";
+			loc += ", ";
+			loc += (data._embedded.venues[0].state) ? data._embedded.venues[0].state.stateCode+" " : "";
+			loc += data._embedded.venues[0].postalCode || "N/A";
+			loc += "\n" + data._embedded.venues[0].country.countryCode;
 			
 		}
 		msgdata.attachments = [{
@@ -168,29 +186,21 @@ function handleRtmMessage(message) { // listening in on the messages in the chan
 					}
 				});
 				break;
-			case 'search':
+			case 'search:events':
 				if (arr[2]) {
-					switch(arr[2]) {
-					case 'event':
-						if (arr[3]) {
-							var url = "https://app.ticketmaster.com/discovery/v2/events.json?keyword=" + arr[3] + "&view=internal&size=1&apikey="+ apikey;
-							client.get(url, function (data) {
-								sendEventCard(message, url, data._embedded.events[0]);
-							});
+					var query = arr.slice(2).join(" ");
+					var url = "https://app.ticketmaster.com/discovery/v2/events.json?" + query.replace(/:/g, "&") + "&view=internal&size=1&apikey="+ apikey;
+					console.log(url);
+					client.get(url, function (data) {
+						if (data._embedded && data._embedded.events) {
+							sendEventCard(message, url, data._embedded.events[0]);
 						} else {
-							web.chat.postMessage(message.channel, "I need the event ID", msgdata);
+							console.log(data);
+							web.chat.postMessage(message.channel, 'No event was found.', msgdata);
 						}
-						break;
-					case 'attr':
-						break;
-					case 'venue':
-						break;
-					default:
-						web.chat.postMessage(message.channel, 'Not sure I know what that is :)', msgdata);
-						break;
-					}
+					});
 				} else {
-					web.chat.postMessage(message.channel, 'What do you want me to get?', msgdata);
+					web.chat.postMessage(message.channel, 'You need to give me a query to search on ;-)', msgdata);
 				}
 				break;
 			case 'get':
@@ -219,7 +229,6 @@ function handleRtmMessage(message) { // listening in on the messages in the chan
 				}
 				break;
 			case 'get:source':
-			case 'legacy':
 				if (arr[2]) {
 					switch(arr[2]) {
 					case 'event':
@@ -269,6 +278,9 @@ function handleRtmMessage(message) { // listening in on the messages in the chan
 					}]
 		    	}];
 				web.chat.postMessage(message.channel, "", msgdata);
+				break;
+			default:
+				web.chat.postMessage(message.channel, "Sorry, I don't recognize this commamd: " + arr[1], msgdata);
 			}
 		} else {
 			sendHelpMenu(message);
