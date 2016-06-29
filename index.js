@@ -78,6 +78,11 @@ function sendHelpMenu(message) {
         "title": "Get event details by source ID",
 		"text": "`\\ get:source event 1500508BE50D4ED5`",
 		"mrkdwn_in": ["text"]
+	}, {
+		"color": "#B7C9D3",
+		"title": "Get attraction details by ID",
+		"text": "`\\ get attraction K8vZ9171KB0`",
+		"mrkdwn_in": ["text"]
 	}];
     web.chat.postMessage(message.channel, "Hello! I'm your <http://developer.ticketmaster.com|Ticketmaster API> assistant. Here's a few examples of what I can do:", msgdata);
 }
