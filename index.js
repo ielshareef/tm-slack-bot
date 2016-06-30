@@ -218,6 +218,39 @@ function sendEventCard(message, url, data) {
 	}
 }
 
+function retrieveResourceById(message, resourceType, resourceId) { 
+	var handler;
+	switch(resourceType){
+		case "event":
+			urlSuffix = "events";
+			handler = sendEventCard;
+			break;
+		case "attraction":
+			urlSuffix = "attractions";
+			handler = sendAttrCard;
+			break;
+		case "venue":
+			urlSuffix = "venues";
+			break;
+		default:
+			web.chat.postMessage(message.channel, 'Not sure I know what that is :)', msgdata);
+			return;
+	} 
+	if (handler) {
+		if (!resourceId){
+			web.chat.postMessage(message.channel, "I need the " + resourceType + " ID", msgdata);
+			return;
+		} else { 
+			var url = "https://app.ticketmaster.com/discovery/v2/" + urlSuffix + "/" + resourceId + ".json?view=internal&apikey="+ apikey;
+			client.get(url, function (data) {
+				handler(message, url, data);
+			});
+		}
+	} else {
+		web.chat.postMessage(message.channel, "Sorry, this functionality is not yet implemented. You can contribute by submitting a merge request here https://github.com/ielshareef/tm-slack-bot", msgdata);	
+	}
+}
+
 function handleRtmMessage(message) { // listening in on the messages in the channels that added me!
 	if (message.type == "message" && message.text && message.text.substring(0, 1) == "\\") { // Making sure they're asking me to do something!
 		console.log('Message:', message);
@@ -270,33 +303,7 @@ function handleRtmMessage(message) { // listening in on the messages in the chan
 				break;
 			case 'get':
 				if (arr[2]) {
-					switch(arr[2]) {
-					case 'event':
-						if (arr[3]) {
-							var url = "https://app.ticketmaster.com/discovery/v2/events/" + arr[3] + ".json?view=internal&apikey="+ apikey;
-							client.get(url, function (data) {
-								sendEventCard(message, url, data);
-							});
-						} else {
-							web.chat.postMessage(message.channel, "I need the event ID", msgdata);
-						}
-						break;
-					case 'attraction':
-						if (arr[3]) {
-							var url = "https://app.ticketmaster.com/discovery/v2/attractions/" + arr[3] + ".json?view=internal&apikey="+ apikey;
-							client.get(url, function(data) {
-								sendAttrCard(message, url, data);
-							});
-						} else {
-							web.chat.postMessage(message.channel, "I need the attraction ID", msgdata);
-						}
-						break;
-					case 'venue':
-						break;
-					default:
-						web.chat.postMessage(message.channel, 'Not sure I know what that is :)', msgdata);
-						break;
-					}
+					retrieveResourceById(message, arr[2], arr[3]);
 				} else {
 					web.chat.postMessage(message.channel, 'What do you want me to get?', msgdata);
 				}
