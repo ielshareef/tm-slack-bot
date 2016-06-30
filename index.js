@@ -60,6 +60,16 @@ function sendHelpMenu(message) {
 		"mrkdwn_in": ["text"]
 	}, {
         "color": "#B7C9D3",
+        "title": "Count all events sourced by TMR in CA",
+		"text": "`\\ count tmr CA`",
+		"mrkdwn_in": ["text"]
+	}, {
+        "color": "#768692",
+        "title": "Count all events sourced by Ticketmaster in US in Sports",
+		"text": "`\\ count ticketmaster US sports`",
+		"mrkdwn_in": ["text"]
+	}, {
+        "color": "#B7C9D3",
         "title": "Search events by keyword",
 		"text": "`\\ search:events keyword=Adele`",
 		"mrkdwn_in": ["text"]
@@ -75,11 +85,127 @@ function sendHelpMenu(message) {
 		"mrkdwn_in": ["text"]
 	}, {
         "color": "#768692",
+        "title": "Get attraction details by ID",
+		"text": "`\\ get attraction K8vZ91710df`",
+		"mrkdwn_in": ["text"]
+	}, {
+        "color": "#B7C9D3",
+        "title": "Get venue details by ID",
+		"text": "`\\ get venue KovZpZAEk6JA`",
+		"mrkdwn_in": ["text"]
+	}, {
+        "color": "#768692",
         "title": "Get event details by source ID",
 		"text": "`\\ get:source event 1500508BE50D4ED5`",
 		"mrkdwn_in": ["text"]
+	}, {
+        "color": "#B7C9D3",
+        "title": "Get attraction details by source ID",
+		"text": "`\\ get:source attraction 821096`",
+		"mrkdwn_in": ["text"]
+	}, {
+        "color": "#768692",
+        "title": "Get venue details by source ID",
+		"text": "`\\ get:source venue 172099`",
+		"mrkdwn_in": ["text"]
 	}];
     web.chat.postMessage(message.channel, "Hello! I'm your <http://developer.ticketmaster.com|Ticketmaster API> assistant. Here's a few examples of what I can do:", msgdata);
+}
+
+function sendVenueCard(message, url, data) {
+	if (data.name) {
+		var url = data.url || "http://";
+		var source = (data.references) ? Object.keys(data.references)[0] : data.source.name;
+		var sourceId = (data.references) ? data.references[source] : data.source.id;
+		if (data.location) {
+			var lat = data.location.latitude || "";
+			var lon = data.location.longitude || "";
+		}
+		msgdata.attachments = [{
+			"color": "#768692",
+			"fields": [{
+				"title": "Name",
+				"value": "<"+url+"|"+data.name+">",
+				"short": true,
+			}, {
+				"title": "Attraction ID",
+				"value": data.id,
+				"short": true,
+			}, {
+				"title": "Source ID",
+				"value": sourceId,
+				"short": true,
+			}, {
+				"title": "Source",
+				"value": source,
+				"short": true
+			}, {
+				"title": "Status",
+				"value": (data.active) ? 'Active' : 'Inactive',
+				"short": true
+			}, {
+				"title": "Zip Code",
+				"value": data.postalCode,
+				"short": true
+			}, {
+				"title": "City",
+				"value": data.city.name,
+				"short": true
+			}, {
+				"title": "Lat/Lon",
+				"value": lat+"/"+lon,
+				"short": true
+			}, {
+				"title": "State/Province",
+				"value": data.state.stateCode,
+				"short": true
+			}, {
+				"title": "Country",
+				"value": data.country.countryCode,
+				"short": true
+			}]			
+		}];
+		web.chat.postMessage(message.channel, "Here's the venue I found: (<"+ url.replace(process.env.TICKETMASTER_API_KEY, "") + "|api call>)", msgdata);
+	} else {
+		web.chat.postMessage(message.channel, "Hmm, something went wrong. #BlameSilverFox. Here's the API call I made: " + url.replace(process.env.TICKETMASTER_API_KEY, ""), msgdata);
+	}
+}
+
+function sendSegmentCard(message, url, data) {
+	if (data.name) {
+		
+		msgdata.attachments = [{
+			"color": "#768692",
+			"fields": [{
+				"title": "Venue ID",
+				"value": data.id,
+				"short": true,
+			}, {
+				"title": "Source",
+				"value": data.source.name,
+				"short": true
+			}, {
+				"title": "Status",
+				"value": (data.active) ? 'Active' : 'Inactive',
+				"short": true
+			}, {
+				"title": "Segment",
+				"value": seg,
+				"short": true
+			}, {
+				"title": "Genre",
+				"value": genre,
+				"short": true
+			}, {
+				"title": "Sub-genre",
+				"value": subGenre,
+				"short": true
+			}]			
+		}];
+		web.chat.postMessage(message.channel, "Here's the attraction I found: (<"+ url.replace(process.env.TICKETMASTER_API_KEY, "") + "|api call>)", msgdata);
+	} else {
+		web.chat.postMessage(message.channel, "Hmm, something went wrong. #BlameSilverFox. Here's the API call I made: " + url.replace(process.env.TICKETMASTER_API_KEY, ""), msgdata);
+	}
 }
 
 function sendAttrCard(message, url, data) {
@@ -95,9 +221,9 @@ function sendAttrCard(message, url, data) {
 		});
 		
 		if( data.classifications && data.classifications.length) {
-			seg = data.classifications[0].segment.name;
-			genre = data.classifications[0].genre.name;
-			subGenre = data.classifications[0].subGenre.name;
+			var seg = data.classifications[0].segment.name;
+			var genre = data.classifications[0].genre.name;
+			var subGenre = data.classifications[0].subGenre.name;
 		}
 		
 		msgdata.attachments = [{
@@ -110,6 +236,10 @@ function sendAttrCard(message, url, data) {
 			"fields": [{
 				"title": "Attraction ID",
 				"value": data.id,
+				"short": true,
+			}, {
+				"title": "Source ID",
+				"value": data.source.id,
 				"short": true,
 			}, {
 				"title": "Source",
@@ -287,6 +417,14 @@ function handleRtmMessage(message) { // listening in on the messages in the chan
 						}
 						break;
 					case 'venue':
+						if (arr[3]) {
+							var url = "https://app.ticketmaster.com/discovery/v2/venues/" + arr[3] + ".json?view=internal&apikey="+ apikey;
+							client.get(url, function(data) {
+								sendVenueCard(message, url, data);
+							});
+						} else {
+							web.chat.postMessage(message.channel, "I need the venue ID", msgdata);
+						}
 						break;
 					default:
 						web.chat.postMessage(message.channel, 'Not sure I know what that is :)', msgdata);
@@ -309,9 +447,25 @@ function handleRtmMessage(message) { // listening in on the messages in the chan
 							web.chat.postMessage(message.channel, "I need the event source ID", msgdata);
 						}
 						break;
-					case 'attr':
+					case 'attraction':
+						if (arr[3]) {
+							var url = "https://app.ticketmaster.com/discovery/v2/attractions/legacy/" + arr[3] + ".json?view=internal&apikey="+ apikey;
+							client.get(url, function(data) {
+								sendAttrCard(message, url, data);
+							});
+						} else {
+							web.chat.postMessage(message.channel, "I need the attraction ID", msgdata);
+						}
 						break;
 					case 'venue':
+						if (arr[3]) {
+							var url = "https://app.ticketmaster.com/discovery/v2/venues/legacy/" + arr[3] + ".json?view=internal&apikey="+ apikey;
+							client.get(url, function(data) {
+								sendVenueCard(message, url, data);
+							});
+						} else {
+							web.chat.postMessage(message.channel, "I need the venue ID", msgdata);
+						}
 						break;
 					default:
 						web.chat.postMessage(message.channel, 'Not sure I know what that is :)', msgdata);
