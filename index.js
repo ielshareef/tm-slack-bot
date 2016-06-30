@@ -171,43 +171,6 @@ function sendVenueCard(message, url, data) {
 	}
 }
 
-function sendSegmentCard(message, url, data) {
-	if (data.name) {
-		
-		msgdata.attachments = [{
-			"color": "#768692",
-			"fields": [{
-				"title": "Venue ID",
-				"value": data.id,
-				"short": true,
-			}, {
-				"title": "Source",
-				"value": data.source.name,
-				"short": true
-			}, {
-				"title": "Status",
-				"value": (data.active) ? 'Active' : 'Inactive',
-				"short": true
-			}, {
-				"title": "Segment",
-				"value": seg,
-				"short": true
-			}, {
-				"title": "Genre",
-				"value": genre,
-				"short": true
-			}, {
-				"title": "Sub-genre",
-				"value": subGenre,
-				"short": true
-			}]			
-		}];
-		web.chat.postMessage(message.channel, "Here's the attraction I found: (<"+ url.replace(process.env.TICKETMASTER_API_KEY, "") + "|api call>)", msgdata);
-	} else {
-		web.chat.postMessage(message.channel, "Hmm, something went wrong. #BlameSilverFox. Here's the API call I made: " + url.replace(process.env.TICKETMASTER_API_KEY, ""), msgdata);
-	}
-}
-
 function sendAttrCard(message, url, data) {
 	if (data.name) {
 		var maxWidth = 0;
@@ -226,6 +189,9 @@ function sendAttrCard(message, url, data) {
 			var subGenre = data.classifications[0].subGenre.name;
 		}
 		
+		var source = (data.references) ? Object.keys(data.references)[0] : data.source.name;
+		var sourceId = (data.references) ? data.references[source] : data.source.id;
+		
 		msgdata.attachments = [{
 			"color": "#768692",
 			"title": "<" + data.url + "|" + data.name + ">",
@@ -239,11 +205,11 @@ function sendAttrCard(message, url, data) {
 				"short": true,
 			}, {
 				"title": "Source ID",
-				"value": data.source.id,
+				"value": sourceId,
 				"short": true,
 			}, {
 				"title": "Source",
-				"value": data.source.name,
+				"value": source,
 				"short": true
 			}, {
 				"title": "Status",
