@@ -314,8 +314,9 @@ function sendEventCard(message, url, data) {
 	}
 }
 
-function retrieveResourceById(message, resourceType, resourceId) { 
+function retrieveResourceById(message, resourceType, resourceId, legacyFlag) { 
 	var handler;
+	var source = (legacyFlag) ? "legacy/" : "";
 	switch(resourceType){
 		case "event":
 			urlSuffix = "events";
@@ -338,7 +339,7 @@ function retrieveResourceById(message, resourceType, resourceId) {
 			web.chat.postMessage(message.channel, "I need the " + resourceType + " ID", msgdata);
 			return;
 		} else { 
-			var url = "https://app.ticketmaster.com/discovery/v2/" + urlSuffix + "/" + resourceId + ".json?view=internal&apikey="+ apikey;
+			var url = "https://app.ticketmaster.com/discovery/v2/" + urlSuffix + "/" + source + resourceId + ".json?view=internal&apikey="+ apikey;
 			client.get(url, function (data) {
 				handler(message, url, data);
 			});
@@ -407,41 +408,7 @@ function handleRtmMessage(message) { // listening in on the messages in the chan
 				break;
 			case 'get:source':
 				if (arr[2]) {
-					switch(arr[2]) {
-					case 'event':
-						if (arr[3]) {
-							var url = "https://app.ticketmaster.com/discovery/v2/events/legacy/" + arr[3] + ".json?apikey="+ apikey;
-							client.get(url, function (data) {
-								sendEventCard(message, url, data);
-							});
-						} else {
-							web.chat.postMessage(message.channel, "I need the event source ID", msgdata);
-						}
-						break;
-					case 'attraction':
-						if (arr[3]) {
-							var url = "https://app.ticketmaster.com/discovery/v2/attractions/legacy/" + arr[3] + ".json?view=internal&apikey="+ apikey;
-							client.get(url, function(data) {
-								sendAttrCard(message, url, data);
-							});
-						} else {
-							web.chat.postMessage(message.channel, "I need the attraction ID", msgdata);
-						}
-						break;
-					case 'venue':
-						if (arr[3]) {
-							var url = "https://app.ticketmaster.com/discovery/v2/venues/legacy/" + arr[3] + ".json?view=internal&apikey="+ apikey;
-							client.get(url, function(data) {
-								sendVenueCard(message, url, data);
-							});
-						} else {
-							web.chat.postMessage(message.channel, "I need the venue ID", msgdata);
-						}
-						break;
-					default:
-						web.chat.postMessage(message.channel, 'Not sure I know what that is :)', msgdata);
-						break;
-					}
+					retrieveResourceById(message, arr[2], arr[3], true);
 				} else {
 					web.chat.postMessage(message.channel, 'What do you want me to get?', msgdata);
 				}
